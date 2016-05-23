@@ -2,7 +2,7 @@ contract SSE {
 
     uint stateOfPlan;
     uint startDateOfPlan;
-    
+    uint noOfFounders;
     address[100] APAddresses;
     uint APAddressSize;
     
@@ -48,16 +48,23 @@ contract SSE {
         stateOfPlan = 0;
     }
     
-    function setInitialState(address[] _APAddresses, uint[100][] _APSchedule, uint[] _revForecast, uint _forecastVarPercent, uint _MaxNoOfConsecPeriodsInRed, uint _DIVDPayoutPercent, uint _DIVDStartDate){
+    function setInitialState(address[] _founders, uint[] _founderSSE, address[] _APAddresses, uint[100][] _APSchedule, uint[] _revForecast, uint _forecastVarPercent, uint _MaxNoOfConsecPeriodsInRed, uint _DIVDPayoutPercent, uint _DIVDStartDate){
         if (stateOfPlan == 0) {
+            noOfFounders = _founders.length;
+            for (uint i=0;i<noOfFounders;++i){
+                ++investorIndex;
+                investorMap[_founders[i]] = investorIndex;
+                investorArray[investorIndex] = _founders[i];
+                investmentArray[investorIndex] = _founderSSE[i];
+            }
             totalPeriods = _APSchedule.length;
             APAddressSize = _APAddresses.length;
-            for (uint i=0;i<totalPeriods;++i){
+            for ( i=0;i<totalPeriods;++i){
                 for (uint j=0;j<APAddressSize;++j){
-                    APSchedule[i][j] = _APSchedule[i][j];
-                    periodicalBudget[i] += _APSchedule[i][j];
+                    APSchedule[i+1][j+1] = _APSchedule[i][j];
+                    periodicalBudget[i+1] += _APSchedule[i][j];
                     if (i==0) {
-                        APAddresses[j] = _APAddresses[j];
+                        APAddresses[j+1] = _APAddresses[j];
                     }
                 }
                 totalBudget += periodicalBudget[i];
@@ -126,7 +133,7 @@ contract SSE {
     
     function createInvoice(uint amount){
         //Allow only project owners to create invoices
-        if (stateOfPlan == 2) {
+        if (stateOfPlan == 2 && investorMap[msg.sender]>0 && investorMap[msg.sender]<=noOfFounders) {
             ++invId;
             invArray[invId] = amount;
             invMap[invId] = 1;
@@ -272,3 +279,5 @@ contract SSE {
     	return paidDIVDSchedule;
 	}
 }
+
+
